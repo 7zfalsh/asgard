@@ -75,7 +75,7 @@ const H=[
 {id:'bal',n:'Бальдр',e:'☀️',r:1,t:'heal',hp:85,atk:9},
 {id:'ska',n:'Скади',e:'❄️',r:1,t:'dmg',hp:80,atk:13},
 {id:'hei',n:'Хеймдалль',e:'📯',r:1,t:'tank',hp:140,atk:8}];
-const CL={dmg:'Воин',mage:'Маг (удар по всем)',heal:'Целитель',tank:'Страж'};
+const CL={dmg:'Воин',mage:'Маг',heal:'Целитель',tank:'Страж'};
 const $=s=>document.querySelector(s);
 const get=id=>H.find(h=>h.id===id);
 let S=null;
@@ -94,6 +94,32 @@ const Q=[{id:'win',n:'Победить в 10 боях',g:10,r:30},{id:'up',n:'У
 function qd(){if(S.q.d!=dk())S.q={d:dk(),p:{},c:{}}}
 function qp(id,n=1){qd();S.q.p[id]=(S.q.p[id]||0)+n}
 function qc(id){qd();const q=Q.find(x=>x.id==id);if((S.q.p[id]||0)<q.g||S.q.c[id])return;S.q.c[id]=1;S.gems+=q.r;save();hdr();modes();toast('+'+q.r+' 💎')}
+const X={
+thor:{d:'Громовержец, сильнейший воин Асгарда. Бьёт мощно по одной цели и вдохновляет союзников.',a:{k:'atk',v:.08},at:'+8% к урону остальных союзников',s:'Молния Мьёльнира',sd:'удар ×3 по первому врагу',cd:3},
+odin:{d:'Всеотец, владыка мудрости. Его копьё поражает всех врагов, а знания приносят богатство.',a:{k:'gold',v:.12},at:'+12% золота за победу',s:'Копьё Гунгнир',sd:'удар ×1 по всем врагам',cd:3},
+loki:{d:'Хитрый обманщик. Метит в самого слабого врага и быстро убирает его с поля.',a:{k:'atk',v:.06},at:'+6% к урону остальных союзников',s:'Подлый удар',sd:'×2.5 по врагу с наименьшим здоровьем',cd:3},
+freya:{d:'Богиня любви и войны. Лечит всю команду и укрепляет её.',a:{k:'hp',v:.08},at:'+8% к здоровью остальных союзников',s:'Дар Фрейи',sd:'лечит всех союзников на 12% их здоровья',cd:2},
+hel:{d:'Повелительница мёртвых. Забирает силы врагов и ослабляет их удары.',a:{k:'ea',v:.08},at:'враги бьют на 8% слабее',s:'Жатва душ',sd:'×0.8 по всем врагам, половина урона лечит саму Хель',cd:3},
+tyr:{d:'Однорукий бог войны и чести. Принимает удары на себя и прикрывает союзников.',a:{k:'hp',v:.1},at:'+10% к здоровью остальных союзников',s:'Щит Тюра',sd:'все союзники получают щит в 12% здоровья Тюра',cd:3},
+fen:{d:'Огромный волк, чудовище Рагнарёка. Яростно кусает цель и быстро заканчивает бой.',a:{k:'atk',v:.05},at:'+5% к урону остальных союзников',s:'Свирепый укус',sd:'×1.8 по первому врагу',cd:2},
+bal:{d:'Светлый бог, любимец всех. Его свет возвращает павших союзников в бой.',a:{k:'hp',v:.06},at:'+6% к здоровью остальных союзников',s:'Возрождение',sd:'воскрешает павшего союзника с 30% здоровья, иначе лечит слабейшего на 30%',cd:5},
+ska:{d:'Богиня зимы и охоты. Её ледяные стрелы замораживают врагов.',a:{k:'ea',v:.05},at:'враги бьют на 5% слабее',s:'Ледяная стрела',sd:'×2 по первому врагу, тот пропускает следующую атаку',cd:3},
+hei:{d:'Страж моста Бифрёст. Его рог поднимает боевой дух всей команды.',a:{k:'gold',v:.08},at:'+8% золота за победу',s:'Зов Гьяллархорна',sd:'+30% урона всей команде на 3 хода',cd:4}};
+const au=(k,ex)=>S.team.reduce((a,o)=>a+(o!=ex&&X[o].a.k==k?X[o].a.v:0),0);
+const en_=()=>B.en.filter(x=>x.hp>0),al_=()=>B.al.filter(x=>x.hp>0),bf=()=>B.buf>0?1.3:1;
+const SK={
+thor:u=>hit(en_()[0],Math.round(u.atk*3*bf())),
+odin:u=>en_().forEach(x=>hit(x,Math.round(u.atk*bf()))),
+loki:u=>hit(en_().sort((a,b)=>a.hp-b.hp)[0],Math.round(u.atk*2.5*bf())),
+freya:u=>al_().forEach(x=>{const v=Math.round(x.mx*.12);x.hp=Math.min(x.mx,x.hp+v);x.pop='+'+v}),
+hel:u=>{let t=0;en_().forEach(x=>{const d=Math.round(u.atk*.8*bf());hit(x,d);t+=d});const v=Math.round(t/2);u.hp=Math.min(u.mx,u.hp+v);u.pop='+'+v},
+tyr:u=>al_().forEach(x=>{x.sh=(x.sh||0)+Math.round(u.mx*.12)}),
+fen:u=>hit(en_()[0],Math.round(u.atk*1.8*bf())),
+bal:u=>{const d=B.al.find(x=>x.hp<=0);if(d){d.hp=Math.round(d.mx*.3);d.pop='✨'}else{const w=al_().sort((a,b)=>a.hp/a.mx-b.hp/b.mx)[0],v=Math.round(w.mx*.3);w.hp=Math.min(w.mx,w.hp+v);w.pop='+'+v}},
+ska:u=>{const t=en_()[0];hit(t,Math.round(u.atk*2*bf()));t.fr=1},
+hei:u=>{B.buf=3}};
+function dmgA(t,d){if(t.sh){const a=Math.min(t.sh,d);t.sh-=a;d-=a}t.hp=Math.max(0,t.hp-d);t.pop='-'+d}
+const inf=id=>{const x=X[id];return `<div class="hint" style="margin:6px 0">${x.d}</div><div style="font-size:13px;margin:4px 0">🌟 <b>Аура:</b> ${x.at}</div><div style="font-size:13px;margin:4px 0">✨ <b>${x.s}</b> (каждый ${x.cd}-й ход): ${x.sd}</div>`};
 function drop(){if(Math.random()>.6)return'';const x=R[Math.random()*R.length|0];S.rel[x.id]=(S.rel[x.id]||0)+1;return x.e+' '+x.n}
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.k);toast.k=setTimeout(()=>e.classList.remove('show'),1900)}
 function fb(){const e=$('#fb');e.style.display=tab=='b'?'flex':'none';
@@ -102,12 +128,13 @@ function fb(){const e=$('#fb');e.style.display=tab=='b'?'flex':'none';
 function tf(){S.farm=!S.farm;save();fb();toast(S.farm?'Фарм: остаёмся на этапе':'Идём вперёд')}
 function hdr(){$('#g').textContent='🪙 '+Math.floor(S.gold);$('#m').textContent='💎 '+S.gems}
 function nb(){
- const al=S.team.map(id=>({id,e:get(id).e,hp:pw(id,'hp'),mx:pw(id,'hp'),atk:pw(id,'atk'),t:get(id).t,n:0}));
+ const al=S.team.map(id=>({id,e:get(id).e,hp:Math.round(pw(id,'hp')*(1+au('hp',id))),mx:Math.round(pw(id,'hp')*(1+au('hp',id))),atk:Math.round(pw(id,'atk')*(1+au('atk',id))),t:get(id).t,n:0}));
  let en;
  if(M=='tw'){const f=S.tw,b=f%10==0,hp=Math.round(90*Math.pow(1.2,f)*(b?3:1)),a=Math.round(9*Math.pow(1.12,f)*(b?1.6:1));en=[0,1,2].map(i=>({e:b&&i==1?'👑':'🗿',hp,mx:hp,atk:a,n:0}))}
  else if(M=='wb')en=[{e:'🐲',hp:1e12,mx:1e12,atk:30+S.max*4,n:0,wb:1}];
  else{const s=S.stage,boss=s%5==0,E=WE[wi(s)%6];
   en=[0,1,2].map(i=>{const b=boss&&i==1,hp=Math.round(70*Math.pow(1.15,s)*(b?3:1));return{e:b?'🐉':E[(s+i)%5],hp,mx:hp,atk:Math.round(7*Math.pow(1.1,s)*(b?1.6:1)),n:0}})}
+ const ea=Math.max(.5,1-au('ea'));en.forEach(x=>x.atk=Math.round(x.atk*ea));
  B={al,en,over:0,tk:0,dmg:0};fb();draw()}
 function hit(x,d){if(x.wb)B.dmg+=d;x.hp=Math.max(0,x.hp-d);x.pop='-'+d}
 function step(){
@@ -117,23 +144,23 @@ function step(){
   if(u.hp<=0)continue;
   const E=B.en.filter(x=>x.hp>0);if(!E.length)break;
   u.n++;
-  if(u.t=='heal'&&u.n%2==0){const w=B.al.filter(x=>x.hp>0).sort((a,b)=>a.hp/a.mx-b.hp/b.mx)[0],v=Math.round(u.atk*2);w.hp=Math.min(w.mx,w.hp+v);w.pop='+'+v;continue}
-  if(u.t=='mage'&&u.n%3==0){E.forEach(x=>hit(x,Math.round(u.atk*.8)));continue}
-  let d=u.atk;if(u.t=='dmg'&&Math.random()<.2)d*=2;
+  const k=X[u.id];if(u.n%k.cd==0){SK[u.id](u);continue}
+  let d=u.atk*bf();if(u.t=='dmg'&&Math.random()<.2)d*=2;
   hit(E[0],Math.round(d));
  }
  if(B.en.every(x=>x.hp<=0)){win();return}
+ if(B.buf>0)B.buf--;
  for(const x of B.en){
-  if(x.hp<=0)continue;
+  if(x.hp<=0)continue;if(x.fr){x.fr=0;continue}
   const L=B.al.filter(u=>u.hp>0);if(!L.length)break;
-  const t=L[Math.random()*L.length|0];t.hp=Math.max(0,t.hp-x.atk);t.pop='-'+x.atk}
+  const t=L[Math.random()*L.length|0];dmgA(t,x.atk)}
  if(B.al.every(u=>u.hp<=0)){lose();return}
  draw()}
 function win(){
  B.over=1;let g,m,d='';
  if(M=='tw'){const f=S.tw,b=f%10==0;g=Math.round(60*Math.pow(1.15,f));m=b?40:6+Math.floor(f/5);S.tw++;if(b)d=drop()}
  else{const s=S.stage,b=s%5==0;g=Math.round(40*Math.pow(1.15,s)*(b?3:1));m=b?30:8;if(!S.farm){if(s%10==0)m+=40;S.stage++;S.max=Math.max(S.max,S.stage)}if(b)d=drop()}
- g=Math.round(g*(1+rb('gold')));S.gold+=g;S.gems+=m;qp('win');
+ g=Math.round(g*(1+rb('gold')+au('gold')));S.gold+=g;S.gems+=m;qp('win');
  toast('Победа! +'+g+' 🪙 +'+m+' 💎'+(d?' · '+d:''));save();hdr();draw();setTimeout(nb,900)}
 function lose(){B.over=1;
  if(M=='wb')return wbEnd();
@@ -164,8 +191,8 @@ function draw(){
 function heroes(){
  const o=S.own[sel],h=get(sel);
  $('#main').innerHTML=`<div class="grid">${H.map(x=>{const q=S.own[x.id];return `<div class="card r${x.r} ${sel==x.id?'sel':''} ${q?'':'lock'}" onclick="pick('${x.id}')"><b>${x.e}</b><small>${x.n}</small><small>${q?'Ур. '+q.l+(q.s?' '+'★'.repeat(q.s):''):'не открыт'}</small>${S.team.includes(x.id)?'<em>⚔</em>':''}</div>`}).join('')}</div>
- <div class="panel"><h2>${h.e} ${h.n}</h2>${o?`<div>${CL[h.t]} · ❤ ${pw(sel,'hp')} · ⚔ ${pw(sel,'atk')}</div>
- <div class="row"><button class="btn" onclick="up()">Усилить · ${cost(o)} 🪙</button><button class="btn alt" onclick="tog()">${S.team.includes(sel)?'Убрать из команды':'В команду'}</button></div>`:`<div class="hint">Герой ещё не открыт. Найди его через призыв.</div>`}</div>`}
+ <div class="panel"><h2>${h.e} ${h.n}</h2>${o?`<div>${CL[h.t]} · ❤ ${pw(sel,'hp')} · ⚔ ${pw(sel,'atk')}</div>${inf(sel)}
+ <div class="row"><button class="btn" onclick="up()">Усилить · ${cost(o)} 🪙</button><button class="btn alt" onclick="tog()">${S.team.includes(sel)?'Убрать из команды':'В команду'}</button></div>`:`${inf(sel)}<div class="hint">Герой ещё не открыт. Найди его через призыв.</div>`}</div>`}
 const cost=o=>Math.round(40*Math.pow(o.l,1.6));
 function pick(id){sel=id;heroes()}
 function up(){const o=S.own[sel],c=cost(o);if(S.gold<c)return toast('Не хватает золота');S.gold-=c;o.l++;qp('up');save();hdr();heroes();M=='st'&&nb()}
