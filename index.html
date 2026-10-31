@@ -15,7 +15,7 @@ header h1{font:800 17px Cinzel,Georgia,serif;margin:0;color:var(--gold);letter-s
 .res{display:flex;gap:12px;font-weight:600}
 main{flex:1;overflow-y:auto;padding:12px 12px 8px}
 nav{display:flex;background:var(--pan);border-top:1px solid #2a3d50;padding-bottom:env(safe-area-inset-bottom,0px)}
-nav button{flex:1;background:none;border:0;color:var(--mut);padding:12px 0;font:600 12px system-ui;border-top:3px solid transparent}
+nav button{flex:1;background:none;border:0;color:var(--mut);padding:7px 0;line-height:1.25;font:600 11px system-ui;border-top:3px solid transparent}
 nav button.on{color:var(--gold);border-top-color:var(--gold)}
 .arena{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:330px;padding:14px 10px;border-radius:14px;background:radial-gradient(120% 90% at 50% 0,#25405a 0,#13202e 70%);border:1px solid #2f4760}
 .col{display:flex;flex-direction:column;gap:10px;width:42%}
@@ -48,19 +48,27 @@ nav button.on{color:var(--gold);border-top-color:var(--gold)}
 .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#000c;border:1px solid var(--gold);padding:8px 14px;border-radius:20px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;text-align:center}
 .toast.show{opacity:1}
 .fbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 14px;background:var(--pan2);font-size:13px}
+.ub{display:flex;gap:6px;padding:6px 12px;background:var(--bg);border-bottom:1px solid #2a3d50}
+.ub button{flex:1;border:1px solid #3a5169;border-radius:10px;padding:5px 0;background:linear-gradient(90deg,#d8a94c66 var(--p,0%),var(--pan2) var(--p,0%));color:var(--tx);font:600 18px/1.1 system-ui}
+.ub button small{display:block;font-size:10px;color:var(--mut)}
+.ub button.rd{border-color:var(--gold);color:var(--gold)}
+.ub button:disabled{opacity:1}
+.ub button:active{transform:scale(.96)}
 .hint{color:var(--mut);font-size:13px;margin:6px 2px}
 </style>
 </head>
 <body>
 <header><h1>Сага Асгарда</h1><div class="res"><span id="g">🪙 0</span><span id="m">💎 0</span></div></header>
 <div class="fbar" id="fb"></div>
+<div class="ub" id="ub"></div>
 <main id="main"></main>
 <nav>
-<button data-t="b" class="on">⚔ Бой</button>
-<button data-t="h">🛡 Герои</button>
-<button data-t="s">✨ Призыв</button>
-<button data-t="r">🏺 Реликвии</button>
-<button data-t="m">🏰 Режимы</button>
+<button data-t="b" class="on">⚔<br>Бой</button>
+<button data-t="h">🛡<br>Герои</button>
+<button data-t="s">✨<br>Призыв</button>
+<button data-t="r">🏺<br>Реликвии</button>
+<button data-t="m">🏰<br>Режимы</button>
+<button data-t="v">🏘<br>Деревня</button>
 </nav>
 <div class="toast" id="toast"></div>
 <script>
@@ -81,9 +89,9 @@ const get=id=>H.find(h=>h.id===id);
 let S=null;
 try{S=JSON.parse(localStorage.getItem('sa1'))}catch(e){}
 if(!S)S={gems:1000,gold:300,own:{thor:{l:1,s:0},tyr:{l:1,s:0},freya:{l:1,s:0}},team:['thor','tyr','freya'],stage:1,max:1,farm:false,t:Date.now()};
-S.max=Math.max(S.max||1,S.stage);S.farm=!!S.farm;S.rel=S.rel||{};S.tw=S.tw||1;S.q=S.q||{d:'',p:{},c:{}};S.wb=S.wb||'';
+S.max=Math.max(S.max||1,S.stage);S.farm=!!S.farm;S.rel=S.rel||{};S.tw=S.tw||1;S.q=S.q||{d:'',p:{},c:{}};S.wb=S.wb||'';S.rn=S.rn||0;S.asc=S.asc||0;S.ru=S.ru||{};S.vl=S.vl||{};S.auto=!!S.auto;
 const save=()=>{S.t=Date.now();try{localStorage.setItem('sa1',JSON.stringify(S))}catch(e){}};
-const pw=(id,k)=>{const o=S.own[id];return Math.round(get(id)[k]*(1+.18*(o.l-1))*(1+.25*o.s)*(1+rb(k)))};
+const pw=(id,k)=>{const o=S.own[id];return Math.round(get(id)[k]*(1+.18*(o.l-1))*(1+.25*o.s)*(1+rb(k)+ru(k)+vb(k)))};
 let tab='b',sel='thor',B=null,res=[],M='st';
 const dk=()=>new Date().toISOString().slice(0,10),wi=s=>Math.floor((s-1)/10);
 const W=['Мидгард','Ётунхейм','Нифльхейм','Муспельхейм','Хельхейм','Асгард'];
@@ -106,40 +114,42 @@ bal:{d:'Светлый бог, любимец всех. Его свет возв
 ska:{d:'Богиня зимы и охоты. Её ледяные стрелы замораживают врагов.',a:{k:'ea',v:.05},at:'враги бьют на 5% слабее',s:'Ледяная стрела',sd:'×2 по первому врагу, тот пропускает следующую атаку',cd:3},
 hei:{d:'Страж моста Бифрёст. Его рог поднимает боевой дух всей команды.',a:{k:'gold',v:.08},at:'+8% золота за победу',s:'Зов Гьяллархорна',sd:'+30% урона всей команде на 3 хода',cd:4}};
 const au=(k,ex)=>S.team.reduce((a,o)=>a+(o!=ex&&X[o].a.k==k?X[o].a.v:0),0);
-const en_=()=>B.en.filter(x=>x.hp>0),al_=()=>B.al.filter(x=>x.hp>0),bf=()=>B.buf>0?1.3:1;
+let PW=1,UM=14,ar=0;
+const en_=()=>B.en.filter(x=>x.hp>0),al_=()=>B.al.filter(x=>x.hp>0),bf=()=>(B.buf>0?1.3:1)*PW;
 const SK={
 thor:u=>hit(en_()[0],Math.round(u.atk*3*bf())),
 odin:u=>en_().forEach(x=>hit(x,Math.round(u.atk*bf()))),
 loki:u=>hit(en_().sort((a,b)=>a.hp-b.hp)[0],Math.round(u.atk*2.5*bf())),
-freya:u=>al_().forEach(x=>{const v=Math.round(x.mx*.12);x.hp=Math.min(x.mx,x.hp+v);x.pop='+'+v}),
+freya:u=>al_().forEach(x=>{const v=Math.round(x.mx*.12*PW);x.hp=Math.min(x.mx,x.hp+v);x.pop='+'+v}),
 hel:u=>{let t=0;en_().forEach(x=>{const d=Math.round(u.atk*.8*bf());hit(x,d);t+=d});const v=Math.round(t/2);u.hp=Math.min(u.mx,u.hp+v);u.pop='+'+v},
-tyr:u=>al_().forEach(x=>{x.sh=(x.sh||0)+Math.round(u.mx*.12)}),
+tyr:u=>al_().forEach(x=>{x.sh=(x.sh||0)+Math.round(u.mx*.12*PW)}),
 fen:u=>hit(en_()[0],Math.round(u.atk*1.8*bf())),
-bal:u=>{const d=B.al.find(x=>x.hp<=0);if(d){d.hp=Math.round(d.mx*.3);d.pop='✨'}else{const w=al_().sort((a,b)=>a.hp/a.mx-b.hp/b.mx)[0],v=Math.round(w.mx*.3);w.hp=Math.min(w.mx,w.hp+v);w.pop='+'+v}},
+bal:u=>{const d=B.al.find(x=>x.hp<=0);if(d){d.hp=Math.min(d.mx,Math.round(d.mx*.3*PW));d.pop='✨'}else{const w=al_().sort((a,b)=>a.hp/a.mx-b.hp/b.mx)[0],v=Math.round(w.mx*.3*PW);w.hp=Math.min(w.mx,w.hp+v);w.pop='+'+v}},
 ska:u=>{const t=en_()[0];hit(t,Math.round(u.atk*2*bf()));t.fr=1},
-hei:u=>{B.buf=3}};
+hei:u=>{B.buf=Math.round(3*PW)}};
 function dmgA(t,d){if(t.sh){const a=Math.min(t.sh,d);t.sh-=a;d-=a}t.hp=Math.max(0,t.hp-d);t.pop='-'+d}
 const inf=id=>{const x=X[id];return `<div class="hint" style="margin:6px 0">${x.d}</div><div style="font-size:13px;margin:4px 0">🌟 <b>Аура:</b> ${x.at}</div><div style="font-size:13px;margin:4px 0">✨ <b>${x.s}</b> (каждый ${x.cd}-й ход): ${x.sd}</div>`};
 function drop(){if(Math.random()>.6)return'';const x=R[Math.random()*R.length|0];S.rel[x.id]=(S.rel[x.id]||0)+1;return x.e+' '+x.n}
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.k);toast.k=setTimeout(()=>e.classList.remove('show'),1900)}
-function fb(){const e=$('#fb');e.style.display=tab=='b'?'flex':'none';
+function fb(){const e=$('#fb');e.style.display=tab=='b'?'flex':'none';$('#ub').style.display=tab=='b'?'flex':'none';
  if(M!='st'){e.innerHTML=`<span>${M=='tw'?'🗼 Башня · этаж '+S.tw:'🐲 Мировой босс'}</span><button class="btn alt" style="flex:none;padding:6px 10px;font-size:13px" onclick="ex()">Выйти</button>`;return}
  e.innerHTML=`<span>${W[wi(S.stage)%6]} · ${S.farm?'🌾 фарм '+S.stage:'⚔ этап '+S.stage} · рекорд ${S.max}</span><button class="btn alt" style="flex:none;padding:6px 10px;font-size:13px" onclick="tf()">${S.farm?'Идти дальше':'Фармить'}</button>`}
 function tf(){S.farm=!S.farm;save();fb();toast(S.farm?'Фарм: остаёмся на этапе':'Идём вперёд')}
-function hdr(){$('#g').textContent='🪙 '+Math.floor(S.gold);$('#m').textContent='💎 '+S.gems}
+function hdr(){$('#g').textContent='🪙 '+Math.floor(S.gold);$('#m').textContent='💎 '+S.gems+(S.rn?' ✨'+S.rn:'')}
 function nb(){
- const al=S.team.map(id=>({id,e:get(id).e,hp:Math.round(pw(id,'hp')*(1+au('hp',id))),mx:Math.round(pw(id,'hp')*(1+au('hp',id))),atk:Math.round(pw(id,'atk')*(1+au('atk',id))),t:get(id).t,n:0}));
+ const al=S.team.map(id=>({id,e:get(id).e,hp:Math.round(pw(id,'hp')*(1+au('hp',id))),mx:Math.round(pw(id,'hp')*(1+au('hp',id))),atk:Math.round(pw(id,'atk')*(1+au('atk',id))),t:get(id).t,n:0,ch:0}));
  let en;
  if(M=='tw'){const f=S.tw,b=f%10==0,hp=Math.round(90*Math.pow(1.2,f)*(b?3:1)),a=Math.round(9*Math.pow(1.12,f)*(b?1.6:1));en=[0,1,2].map(i=>({e:b&&i==1?'👑':'🗿',hp,mx:hp,atk:a,n:0}))}
  else if(M=='wb')en=[{e:'🐲',hp:1e12,mx:1e12,atk:30+S.max*4,n:0,wb:1}];
  else{const s=S.stage,boss=s%5==0,E=WE[wi(s)%6];
   en=[0,1,2].map(i=>{const b=boss&&i==1,hp=Math.round(70*Math.pow(1.15,s)*(b?3:1));return{e:b?'🐉':E[(s+i)%5],hp,mx:hp,atk:Math.round(7*Math.pow(1.1,s)*(b?1.6:1)),n:0}})}
  const ea=Math.max(.5,1-au('ea'));en.forEach(x=>x.atk=Math.round(x.atk*ea));
- B={al,en,over:0,tk:0,dmg:0};fb();draw()}
+ B={al,en,over:0,tk:0,dmg:0};ubuild();fb();draw()}
 function hit(x,d){if(x.wb)B.dmg+=d;x.hp=Math.max(0,x.hp-d);x.pop='-'+d}
 function step(){
  if(!B||B.over)return;
  if(M=='wb'&&B.tk++>=40)return wbEnd();
+ B.al.forEach(u=>{if(u.hp>0&&u.ch<UM)u.ch++});if(S.auto)B.al.forEach((u,i)=>{if(u.hp>0&&u.ch>=UM)ult(i)});updUb();
  for(const u of B.al){
   if(u.hp<=0)continue;
   const E=B.en.filter(x=>x.hp>0);if(!E.length)break;
@@ -160,7 +170,7 @@ function win(){
  B.over=1;let g,m,d='';
  if(M=='tw'){const f=S.tw,b=f%10==0;g=Math.round(60*Math.pow(1.15,f));m=b?40:6+Math.floor(f/5);S.tw++;if(b)d=drop()}
  else{const s=S.stage,b=s%5==0;g=Math.round(40*Math.pow(1.15,s)*(b?3:1));m=b?30:8;if(!S.farm){if(s%10==0)m+=40;S.stage++;S.max=Math.max(S.max,S.stage)}if(b)d=drop()}
- g=Math.round(g*(1+rb('gold')+au('gold')));S.gold+=g;S.gems+=m;qp('win');
+ g=Math.round(g*(1+rb('gold')+au('gold')+ru('gold')+vb('gold')));S.gold+=g;S.gems+=m;qp('win');
  toast('Победа! +'+g+' 🪙 +'+m+' 💎'+(d?' · '+d:''));save();hdr();draw();setTimeout(nb,900)}
 function lose(){B.over=1;
  if(M=='wb')return wbEnd();
@@ -172,7 +182,7 @@ function wbEnd(){B.over=1;const d=B.dmg,g=Math.round(d/5),m=Math.min(100,20+Math
 function ex(){if(M=='wb')return wbEnd();M='st';nb()}
 function go(m){if(m=='wb'&&S.wb==dk())return;M=m;nb();showTab('b')}
 function showTab(t){tab=t;document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x.dataset.t==t));fb();
- if(t=='b')draw();else if(t=='h')heroes();else if(t=='s')summon();else if(t=='r')relics();else modes()}
+ if(t=='b')draw();else if(t=='h')heroes();else if(t=='s')summon();else if(t=='r')relics();else if(t=='v')village();else modes()}
 function relics(){
  $('#main').innerHTML=`<div class="hint">Реликвии падают с боссов и усиливают всю команду. Повторная находка — улучшение.</div><div class="grid" style="grid-template-columns:repeat(2,1fr)">`+R.map(x=>{const l=S.rel[x.id]||0;return `<div class="card r${l?2:1} ${l?'':'lock'}"><b>${x.e}</b><small>${x.n}</small><small>${l?'Ур. '+l+' · +'+Math.round(x.v*l*100)+'% '+x.d:'не найдена'}</small>${l?`<button class="btn alt" style="margin:6px 6px 0;width:calc(100% - 12px);flex:none;padding:6px" onclick="rup('${x.id}')">${rcost(l)} 🪙</button>`:''}</div>`}).join('')+'</div>'}
 function rup(id){const l=S.rel[id],c=rcost(l);if(S.gold<c)return toast('Не хватает золота');S.gold-=c;S.rel[id]++;save();hdr();relics();M=='st'&&nb()}
@@ -180,6 +190,29 @@ function modes(){qd();const ok=S.wb!=dk();
  $('#main').innerHTML=`<div class="panel"><h2>🗼 Башня</h2><div class="hint">Этаж ${S.tw}. Без отступления: проиграл — выход. Босс и реликвия каждые 10 этажей.</div><div class="row"><button class="btn" onclick="go('tw')">Войти</button></div></div>
  <div class="panel"><h2>🐲 Мировой босс</h2><div class="hint">Одна попытка в день: 40 ударов, награда зависит от нанесённого урона.</div><div class="row"><button class="btn" ${ok?'':'disabled'} onclick="go('wb')">${ok?'В бой':'Завтра'}</button></div></div>
  <div class="panel"><h2>📜 Задания дня</h2>${Q.map(q=>{const p=Math.min(q.g,S.q.p[q.id]||0),c=S.q.c[q.id];return `<div class="row" style="align-items:center"><span style="flex:1">${q.n} <b>${p}/${q.g}</b></span><button class="btn alt" style="flex:none;padding:8px 10px" ${p<q.g||c?'disabled':''} onclick="qc('${q.id}')">${c?'✓':'+'+q.r+' 💎'}</button></div>`}).join('')}</div>`}
+const V=[{id:'farm',n:'Ферма',e:'🌾',b:100,f:l=>'+'+Math.round(3*l*(1+ru('gold')))+' 🪙/сек'},{id:'forge',n:'Кузница',e:'⚒️',b:150,f:l=>'+'+4*l+'% урона команды'},{id:'inn',n:'Таверна',e:'🍺',b:150,f:l=>'+'+4*l+'% здоровья команды'},{id:'mkt',n:'Рынок',e:'🏪',b:200,f:l=>'+'+5*l+'% золота за победу'}];
+const RU=[{k:'atk',n:'Сила предков',d:'+10% урона'},{k:'hp',n:'Стойкость',d:'+10% здоровья'},{k:'gold',n:'Жадность',d:'+15% золота'},{k:'start',n:'Запасы',d:'+200 золота при старте'}];
+const vl=id=>S.vl[id]||0,vc=(v,l)=>Math.round(v.b*Math.pow(1.4,l)),rcs=k=>Math.round(3*Math.pow(1.5,S.ru[k]||0));
+function ru(k){return (S.ru[k]||0)*({atk:.1,hp:.1,gold:.15}[k]||0)}
+function vb(k){return {atk:.04*vl('forge'),hp:.04*vl('inn'),gold:.05*vl('mkt')}[k]||0}
+function gps(){return 3*vl('farm')*(1+ru('gold'))}
+const again=()=>Math.floor(S.max*S.max/20);
+function ubuild(){$('#ub').innerHTML=B.al.map((u,i)=>`<button id="ub${i}" onclick="ult(${i})">${u.e}<small></small></button>`).join('')+'<button id="ua" style="flex:.6" onclick="S.auto=!S.auto;save();updUb()">🔁<small>Авто</small></button>';updUb()}
+function updUb(){if(!B)return;B.al.forEach((u,i)=>{const b=$('#ub'+i);if(!b)return;const p=Math.min(100,u.ch/UM*100),rd=u.ch>=UM&&u.hp>0;b.style.setProperty('--p',p+'%');b.classList.toggle('rd',rd);b.disabled=!rd;const t=u.hp<=0?'☠':rd?'ГОТОВО':Math.round(p)+'%',sm=b.querySelector('small');if(sm.textContent!=t)sm.textContent=t});const a=$('#ua');if(a){a.classList.toggle('rd',!!S.auto);a.querySelector('small').textContent=S.auto?'вкл':'выкл'}}
+function ult(i){const u=B&&B.al[i];if(!u||B.over||u.hp<=0||u.ch<UM||!en_().length)return;u.ch=0;PW=2.5;SK[u.id](u);PW=1;toast('💥 '+X[u.id].s+'!');updUb()}
+function village(){
+ const g=again();
+ $('#main').innerHTML=V.map(v=>{const l=vl(v.id);return `<div class="panel" style="margin-top:8px"><div class="row" style="align-items:center;margin:0"><span style="font-size:28px">${v.e}</span><span style="flex:1"><b>${v.n}</b> · Ур. ${l}<br><span class="hint">${l?v.f(l):'не построено'}${l?' → '+v.f(l+1):' → '+v.f(1)}</span></span><button class="btn alt" style="flex:none;padding:8px 10px" onclick="vup('${v.id}')">${vc(v,l)} 🪙</button></div></div>`}).join('')+
+ `<div class="panel"><h2>🌌 Вознесение</h2><div class="hint">Вознесение сбрасывает этапы, золото, уровни героев и деревню. Остаются герои, звёзды, реликвии, самоцветы и руны. Вознесений: ${S.asc}.</div>
+ <div style="margin:8px 0">Награда сейчас: <b>${g>=5?'✨ '+g:'нужен рекорд этапа 10+'}</b> · руны: <b>✨ ${S.rn}</b></div>
+ <div class="row"><button class="btn" ${g<5?'disabled':''} onclick="ascend()">${ar?'Точно? Нажми ещё раз':'Вознестись'}</button></div>
+ ${RU.map(x=>`<div class="row" style="align-items:center"><span style="flex:1"><b>${x.n}</b> · Ур. ${S.ru[x.k]||0}<br><span class="hint">${x.d}</span></span><button class="btn alt" style="flex:none;padding:8px 10px" onclick="ruup('${x.k}')">${rcs(x.k)} ✨</button></div>`).join('')}</div>`}
+function vup(id){const v=V.find(x=>x.id==id),c=vc(v,vl(id));if(S.gold<c)return toast('Не хватает золота');S.gold-=c;S.vl[id]=vl(id)+1;save();hdr();village();if(id!='farm'&&M=='st')nb()}
+function ruup(k){const c=rcs(k);if(S.rn<c)return toast('Не хватает рун');S.rn-=c;S.ru[k]=(S.ru[k]||0)+1;save();hdr();village();if(M=='st')nb()}
+function ascend(){const g=again();if(g<5)return;if(!ar){ar=1;village();return}
+ ar=0;S.rn+=g;S.asc++;S.stage=1;S.max=1;S.farm=false;S.gold=300+200*(S.ru.start||0);S.vl={};
+ for(const k in S.own)S.own[k].l=1;
+ M='st';save();hdr();nb();village();toast('Вознесение! +'+g+' ✨')}
 function unit(u){const p=u.pop?`<i class="pop">${u.pop}</i>`:'';u.pop='';
  return `<div class="u ${u.hp<=0?'dead':''}">${p}<b>${u.e}</b><div class="bar"><span style="width:${u.hp/u.mx*100}%"></span></div></div>`}
 function draw(){
@@ -214,9 +247,9 @@ function pull(n){
   res.push({h,t})}
  save();hdr();summon()}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
-const away=Math.min((Date.now()-S.t)/1000,28800),off=Math.floor(away*(1+S.stage*.8)*.5*(1+rb('off')));
+const away=Math.min((Date.now()-S.t)/1000,28800),off=Math.floor(away*(1+S.stage*.8)*.5*(1+rb('off')))+Math.floor(away*gps()*.5);
 if(off>20){S.gold+=off;setTimeout(()=>toast('Пока тебя не было: +'+off+' 🪙'),400)}
-hdr();nb();setInterval(step,650);
+hdr();nb();setInterval(step,650);setInterval(()=>{const g=gps();if(g){S.gold+=g;hdr()}},1000);
 </script>
 </body>
 </html>
