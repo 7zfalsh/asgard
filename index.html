@@ -48,6 +48,15 @@ nav button.on{color:var(--gold);border-top-color:var(--gold)}
 .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#000c;border:1px solid var(--gold);padding:8px 14px;border-radius:20px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;text-align:center}
 .toast.show{opacity:1}
 .fbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 14px;background:var(--pan2);font-size:13px}
+.uf{flex-basis:100%;display:flex;justify-content:center;flex-wrap:wrap;gap:6px}
+.uf span{background:#d8a94c33;border:1px solid var(--gold);color:var(--gold);border-radius:12px;padding:2px 10px;font-size:12px;font-weight:700}
+.sk{display:flex;flex-wrap:wrap;row-gap:4px;justify-content:center;gap:8px;padding:5px 12px;background:var(--bg);border-top:1px solid #2a3d50}
+.sk1{width:48px;text-align:center;border:1px solid #2f4760;border-radius:8px;background:var(--pan);padding:2px 0;font-size:18px;line-height:1.15}
+.sk1 small{display:block;font-size:10px;color:var(--mut)}
+.sk1.rdy{border-color:var(--gold)}
+.sk1.rdy small{color:var(--gold)}
+.sk1.fire{border-color:var(--gold);background:#d8a94c55;box-shadow:0 0 8px var(--gold)}
+.sk1.fire small{color:var(--gold);font-weight:700}
 .ub{display:flex;gap:6px;padding:6px 12px;background:var(--bg);border-bottom:1px solid #2a3d50}
 .ub button{flex:1;border:1px solid #3a5169;border-radius:10px;padding:5px 0;background:linear-gradient(90deg,#d8a94c66 var(--p,0%),var(--pan2) var(--p,0%));color:var(--tx);font:600 18px/1.1 system-ui}
 .ub button small{display:block;font-size:10px;color:var(--mut)}
@@ -62,6 +71,7 @@ nav button.on{color:var(--gold);border-top-color:var(--gold)}
 <div class="fbar" id="fb"></div>
 <div class="ub" id="ub"></div>
 <main id="main"></main>
+<div class="sk" id="sk"></div>
 <nav>
 <button data-t="b" class="on">⚔<br>Бой</button>
 <button data-t="h">🛡<br>Герои</button>
@@ -114,7 +124,7 @@ bal:{d:'Светлый бог, любимец всех. Его свет возв
 ska:{d:'Богиня зимы и охоты. Её ледяные стрелы замораживают врагов.',a:{k:'ea',v:.05},at:'враги бьют на 5% слабее',s:'Ледяная стрела',sd:'×2 по первому врагу, тот пропускает следующую атаку',cd:3},
 hei:{d:'Страж моста Бифрёст. Его рог поднимает боевой дух всей команды.',a:{k:'gold',v:.08},at:'+8% золота за победу',s:'Зов Гьяллархорна',sd:'+30% урона всей команде на 3 хода',cd:4}};
 const au=(k,ex)=>S.team.reduce((a,o)=>a+(o!=ex&&X[o].a.k==k?X[o].a.v:0),0);
-let PW=1,UM=14,ar=0;
+let PW=1,UM=10,ar=0;
 const en_=()=>B.en.filter(x=>x.hp>0),al_=()=>B.al.filter(x=>x.hp>0),bf=()=>(B.buf>0?1.3:1)*PW;
 const SK={
 thor:u=>hit(en_()[0],Math.round(u.atk*3*bf())),
@@ -131,7 +141,7 @@ function dmgA(t,d){if(t.sh){const a=Math.min(t.sh,d);t.sh-=a;d-=a}t.hp=Math.max(
 const inf=id=>{const x=X[id];return `<div class="hint" style="margin:6px 0">${x.d}</div><div style="font-size:13px;margin:4px 0">🌟 <b>Аура:</b> ${x.at}</div><div style="font-size:13px;margin:4px 0">✨ <b>${x.s}</b> (каждый ${x.cd}-й ход): ${x.sd}</div>`};
 function drop(){if(Math.random()>.6)return'';const x=R[Math.random()*R.length|0];S.rel[x.id]=(S.rel[x.id]||0)+1;return x.e+' '+x.n}
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.k);toast.k=setTimeout(()=>e.classList.remove('show'),1900)}
-function fb(){const e=$('#fb');e.style.display=tab=='b'?'flex':'none';$('#ub').style.display=tab=='b'?'flex':'none';
+function fb(){const e=$('#fb');e.style.display=tab=='b'?'flex':'none';$('#ub').style.display=tab=='b'?'flex':'none';$('#sk').style.display=tab=='b'?'flex':'none';
  if(M!='st'){e.innerHTML=`<span>${M=='tw'?'🗼 Башня · этаж '+S.tw:'🐲 Мировой босс'}</span><button class="btn alt" style="flex:none;padding:6px 10px;font-size:13px" onclick="ex()">Выйти</button>`;return}
  e.innerHTML=`<span>${W[wi(S.stage)%6]} · ${S.farm?'🌾 фарм '+S.stage:'⚔ этап '+S.stage} · рекорд ${S.max}</span><button class="btn alt" style="flex:none;padding:6px 10px;font-size:13px" onclick="tf()">${S.farm?'Идти дальше':'Фармить'}</button>`}
 function tf(){S.farm=!S.farm;save();fb();toast(S.farm?'Фарм: остаёмся на этапе':'Идём вперёд')}
@@ -197,9 +207,12 @@ function ru(k){return (S.ru[k]||0)*({atk:.1,hp:.1,gold:.15}[k]||0)}
 function vb(k){return {atk:.04*vl('forge'),hp:.04*vl('inn'),gold:.05*vl('mkt')}[k]||0}
 function gps(){return 3*vl('farm')*(1+ru('gold'))}
 const again=()=>Math.floor(S.max*S.max/20);
-function ubuild(){$('#ub').innerHTML=B.al.map((u,i)=>`<button id="ub${i}" onclick="ult(${i})">${u.e}<small></small></button>`).join('')+'<button id="ua" style="flex:.6" onclick="S.auto=!S.auto;save();updUb()">🔁<small>Авто</small></button>';updUb()}
-function updUb(){if(!B)return;B.al.forEach((u,i)=>{const b=$('#ub'+i);if(!b)return;const p=Math.min(100,u.ch/UM*100),rd=u.ch>=UM&&u.hp>0;b.style.setProperty('--p',p+'%');b.classList.toggle('rd',rd);b.disabled=!rd;const t=u.hp<=0?'☠':rd?'ГОТОВО':Math.round(p)+'%',sm=b.querySelector('small');if(sm.textContent!=t)sm.textContent=t});const a=$('#ua');if(a){a.classList.toggle('rd',!!S.auto);a.querySelector('small').textContent=S.auto?'вкл':'выкл'}}
-function ult(i){const u=B&&B.al[i];if(!u||B.over||u.hp<=0||u.ch<UM||!en_().length)return;u.ch=0;PW=2.5;SK[u.id](u);PW=1;toast('💥 '+X[u.id].s+'!');updUb()}
+const SI={thor:'⚡',odin:'🔱',loki:'🗡️',freya:'💞',hel:'☠️',tyr:'🛡️',fen:'🦷',bal:'✨',ska:'🏹',hei:'📯'};
+function fire(u,big){const i=B.al.indexOf(u),b=$('#sk'+i);if(!b)return;b.classList.add('fire');b.querySelector('small').textContent='';clearTimeout(b.k);b.k=setTimeout(()=>{b.classList.remove('fire');updUb()},700);
+}
+function ubuild(){$('#ub').innerHTML=B.al.map((u,i)=>`<button id="ub${i}" onclick="ult(${i})">${u.e}<small></small></button>`).join('')+'<button id="ua" style="flex:.6" onclick="S.auto=!S.auto;save();updUb()">🔁<small>Авто</small></button>';$('#sk').innerHTML=B.al.map((u,i)=>`<div class="sk1" id="sk${i}">${SI[u.id]}<small></small></div>`).join('');updUb()}
+function updUb(){if(!B)return;B.al.forEach((u,i)=>{const b=$('#ub'+i);if(!b)return;const p=Math.min(100,u.ch/UM*100),rd=u.ch>=UM&&u.hp>0;b.style.setProperty('--p',p+'%');b.classList.toggle('rd',rd);b.disabled=!rd;const t=u.hp<=0?'☠':rd?'ГОТОВО':Math.round(p)+'%',sm=b.querySelector('small');if(sm.textContent!=t)sm.textContent=t;const k=$('#sk'+i);if(k){k.classList.toggle('rdy',rd);if(!k.classList.contains('fire')){const q=k.querySelector('small');if(q.textContent!=t)q.textContent=t}}});const a=$('#ua');if(a){a.classList.toggle('rd',!!S.auto);a.querySelector('small').textContent=S.auto?'вкл':'выкл'}}
+function ult(i){const u=B&&B.al[i];if(!u||B.over||u.hp<=0||u.ch<UM||!en_().length)return;u.ch=0;PW=2.5;SK[u.id](u);PW=1;fire(u,1);updUb()}
 function village(){
  const g=again();
  $('#main').innerHTML=V.map(v=>{const l=vl(v.id);return `<div class="panel" style="margin-top:8px"><div class="row" style="align-items:center;margin:0"><span style="font-size:28px">${v.e}</span><span style="flex:1"><b>${v.n}</b> · Ур. ${l}<br><span class="hint">${l?v.f(l):'не построено'}${l?' → '+v.f(l+1):' → '+v.f(1)}</span></span><button class="btn alt" style="flex:none;padding:8px 10px" onclick="vup('${v.id}')">${vc(v,l)} 🪙</button></div></div>`}).join('')+
