@@ -48,6 +48,9 @@ nav button.on{color:var(--gold);border-top-color:var(--gold)}
 .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#000c;border:1px solid var(--gold);padding:8px 14px;border-radius:20px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;text-align:center}
 .toast.show{opacity:1}
 .fbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 14px;background:var(--pan2);font-size:13px}
+.sp{display:flex;justify-content:center;gap:6px;padding:4px 12px;background:var(--bg);border-top:1px solid #2a3d50}
+.sp button{flex:1;max-width:72px;padding:5px 0;border-radius:8px;border:1px solid #3a5169;background:var(--pan2);color:var(--mut);font:700 13px system-ui}
+.sp button.on{background:var(--gold);color:#1a1205;border-color:var(--gold)}
 .uf{flex-basis:100%;display:flex;justify-content:center;flex-wrap:wrap;gap:6px}
 .uf span{background:#d8a94c33;border:1px solid var(--gold);color:var(--gold);border-radius:12px;padding:2px 10px;font-size:12px;font-weight:700}
 .sk{display:flex;flex-wrap:wrap;row-gap:4px;justify-content:center;gap:8px;padding:5px 12px;background:var(--bg);border-top:1px solid #2a3d50}
@@ -71,6 +74,7 @@ nav button.on{color:var(--gold);border-top-color:var(--gold)}
 <div class="fbar" id="fb"></div>
 <div class="ub" id="ub"></div>
 <main id="main"></main>
+<div class="sp" id="sp"></div>
 <div class="sk" id="sk"></div>
 <nav>
 <button data-t="b" class="on">⚔<br>Бой</button>
@@ -99,7 +103,7 @@ const get=id=>H.find(h=>h.id===id);
 let S=null;
 try{S=JSON.parse(localStorage.getItem('sa1'))}catch(e){}
 if(!S)S={gems:1000,gold:300,own:{thor:{l:1,s:0},tyr:{l:1,s:0},freya:{l:1,s:0}},team:['thor','tyr','freya'],stage:1,max:1,farm:false,t:Date.now()};
-S.max=Math.max(S.max||1,S.stage);S.farm=!!S.farm;S.rel=S.rel||{};S.tw=S.tw||1;S.q=S.q||{d:'',p:{},c:{}};S.wb=S.wb||'';S.rn=S.rn||0;S.asc=S.asc||0;S.ru=S.ru||{};S.vl=S.vl||{};S.auto=!!S.auto;
+S.max=Math.max(S.max||1,S.stage);S.farm=!!S.farm;S.rel=S.rel||{};S.tw=S.tw||1;S.q=S.q||{d:'',p:{},c:{}};S.wb=S.wb||'';S.rn=S.rn||0;S.asc=S.asc||0;S.ru=S.ru||{};S.vl=S.vl||{};S.auto=!!S.auto;S.sp=S.sp||1;
 const save=()=>{S.t=Date.now();try{localStorage.setItem('sa1',JSON.stringify(S))}catch(e){}};
 const pw=(id,k)=>{const o=S.own[id];return Math.round(get(id)[k]*(1+.18*(o.l-1))*(1+.25*o.s)*(1+rb(k)+ru(k)+vb(k)))};
 let tab='b',sel='thor',B=null,res=[],M='st';
@@ -124,7 +128,7 @@ bal:{d:'Светлый бог, любимец всех. Его свет возв
 ska:{d:'Богиня зимы и охоты. Её ледяные стрелы замораживают врагов.',a:{k:'ea',v:.05},at:'враги бьют на 5% слабее',s:'Ледяная стрела',sd:'×2 по первому врагу, тот пропускает следующую атаку',cd:3},
 hei:{d:'Страж моста Бифрёст. Его рог поднимает боевой дух всей команды.',a:{k:'gold',v:.08},at:'+8% золота за победу',s:'Зов Гьяллархорна',sd:'+30% урона всей команде на 3 хода',cd:4}};
 const au=(k,ex)=>S.team.reduce((a,o)=>a+(o!=ex&&X[o].a.k==k?X[o].a.v:0),0);
-let PW=1,UM=10,ar=0;
+let PW=1,UM=10,ar=0,tm;
 const en_=()=>B.en.filter(x=>x.hp>0),al_=()=>B.al.filter(x=>x.hp>0),bf=()=>(B.buf>0?1.3:1)*PW;
 const SK={
 thor:u=>hit(en_()[0],Math.round(u.atk*3*bf())),
@@ -141,7 +145,7 @@ function dmgA(t,d){if(t.sh){const a=Math.min(t.sh,d);t.sh-=a;d-=a}t.hp=Math.max(
 const inf=id=>{const x=X[id];return `<div class="hint" style="margin:6px 0">${x.d}</div><div style="font-size:13px;margin:4px 0">🌟 <b>Аура:</b> ${x.at}</div><div style="font-size:13px;margin:4px 0">✨ <b>${x.s}</b> (каждый ${x.cd}-й ход): ${x.sd}</div>`};
 function drop(){if(Math.random()>.6)return'';const x=R[Math.random()*R.length|0];S.rel[x.id]=(S.rel[x.id]||0)+1;return x.e+' '+x.n}
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.k);toast.k=setTimeout(()=>e.classList.remove('show'),1900)}
-function fb(){const e=$('#fb');e.style.display=tab=='b'?'flex':'none';$('#ub').style.display=tab=='b'?'flex':'none';$('#sk').style.display=tab=='b'?'flex':'none';
+function fb(){const e=$('#fb');e.style.display=tab=='b'?'flex':'none';$('#ub').style.display=tab=='b'?'flex':'none';$('#sk').style.display=tab=='b'?'flex':'none';$('#sp').style.display=tab=='b'?'flex':'none';
  if(M!='st'){e.innerHTML=`<span>${M=='tw'?'🗼 Башня · этаж '+S.tw:'🐲 Мировой босс'}</span><button class="btn alt" style="flex:none;padding:6px 10px;font-size:13px" onclick="ex()">Выйти</button>`;return}
  e.innerHTML=`<span>${W[wi(S.stage)%6]} · ${S.farm?'🌾 фарм '+S.stage:'⚔ этап '+S.stage} · рекорд ${S.max}</span><button class="btn alt" style="flex:none;padding:6px 10px;font-size:13px" onclick="tf()">${S.farm?'Идти дальше':'Фармить'}</button>`}
 function tf(){S.farm=!S.farm;save();fb();toast(S.farm?'Фарм: остаёмся на этапе':'Идём вперёд')}
@@ -181,12 +185,12 @@ function win(){
  if(M=='tw'){const f=S.tw,b=f%10==0;g=Math.round(60*Math.pow(1.15,f));m=b?40:6+Math.floor(f/5);S.tw++;if(b)d=drop()}
  else{const s=S.stage,b=s%5==0;g=Math.round(40*Math.pow(1.15,s)*(b?3:1));m=b?30:8;if(!S.farm){if(s%10==0)m+=40;S.stage++;S.max=Math.max(S.max,S.stage)}if(b)d=drop()}
  g=Math.round(g*(1+rb('gold')+au('gold')+ru('gold')+vb('gold')));S.gold+=g;S.gems+=m;qp('win');
- toast('Победа! +'+g+' 🪙 +'+m+' 💎'+(d?' · '+d:''));save();hdr();draw();setTimeout(nb,900)}
+ toast('Победа! +'+g+' 🪙 +'+m+' 💎'+(d?' · '+d:''));save();hdr();draw();setTimeout(nb,900/S.sp)}
 function lose(){B.over=1;
  if(M=='wb')return wbEnd();
  if(M=='tw'){toast('Башня: проиграл на этаже '+S.tw);M='st'}
  else{S.stage=Math.max(1,S.stage-1);S.farm=true;toast('Поражение! Отступаем на этап '+S.stage+' — фармим')}
- save();draw();setTimeout(nb,1500)}
+ save();draw();setTimeout(nb,1500/S.sp)}
 function wbEnd(){B.over=1;const d=B.dmg,g=Math.round(d/5),m=Math.min(100,20+Math.floor(d/1000));
  S.gold+=g;S.gems+=m;S.wb=dk();M='st';save();hdr();toast('Босс: урон '+d+' · +'+g+' 🪙 +'+m+' 💎');setTimeout(nb,1800)}
 function ex(){if(M=='wb')return wbEnd();M='st';nb()}
@@ -210,6 +214,8 @@ const again=()=>Math.floor(S.max*S.max/20);
 const SI={thor:'⚡',odin:'🔱',loki:'🗡️',freya:'💞',hel:'☠️',tyr:'🛡️',fen:'🦷',bal:'✨',ska:'🏹',hei:'📯'};
 function fire(u,big){const i=B.al.indexOf(u),b=$('#sk'+i);if(!b)return;b.classList.add('fire');b.querySelector('small').textContent='';clearTimeout(b.k);b.k=setTimeout(()=>{b.classList.remove('fire');updUb()},700);
 }
+function updSp(){$('#sp').innerHTML='<span style="align-self:center;color:var(--mut);font-size:12px;margin-right:4px">Скорость</span>'+[1,2,4,8].map(v=>`<button class="${S.sp==v?'on':''}" onclick="spd(${v})">×${v}</button>`).join('')}
+function spd(v){S.sp=v;save();clearInterval(tm);tm=setInterval(step,650/v);updSp()}
 function ubuild(){$('#ub').innerHTML=B.al.map((u,i)=>`<button id="ub${i}" onclick="ult(${i})">${u.e}<small></small></button>`).join('')+'<button id="ua" style="flex:.6" onclick="S.auto=!S.auto;save();updUb()">🔁<small>Авто</small></button>';$('#sk').innerHTML=B.al.map((u,i)=>`<div class="sk1" id="sk${i}">${SI[u.id]}<small></small></div>`).join('');updUb()}
 function updUb(){if(!B)return;B.al.forEach((u,i)=>{const b=$('#ub'+i);if(!b)return;const p=Math.min(100,u.ch/UM*100),rd=u.ch>=UM&&u.hp>0;b.style.setProperty('--p',p+'%');b.classList.toggle('rd',rd);b.disabled=!rd;const t=u.hp<=0?'☠':rd?'ГОТОВО':Math.round(p)+'%',sm=b.querySelector('small');if(sm.textContent!=t)sm.textContent=t;const k=$('#sk'+i);if(k){k.classList.toggle('rdy',rd);if(!k.classList.contains('fire')){const q=k.querySelector('small');if(q.textContent!=t)q.textContent=t}}});const a=$('#ua');if(a){a.classList.toggle('rd',!!S.auto);a.querySelector('small').textContent=S.auto?'вкл':'выкл'}}
 function ult(i){const u=B&&B.al[i];if(!u||B.over||u.hp<=0||u.ch<UM||!en_().length)return;u.ch=0;PW=2.5;SK[u.id](u);PW=1;fire(u,1);updUb()}
@@ -262,7 +268,7 @@ function pull(n){
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
 const away=Math.min((Date.now()-S.t)/1000,28800),off=Math.floor(away*(1+S.stage*.8)*.5*(1+rb('off')))+Math.floor(away*gps()*.5);
 if(off>20){S.gold+=off;setTimeout(()=>toast('Пока тебя не было: +'+off+' 🪙'),400)}
-hdr();nb();setInterval(step,650);setInterval(()=>{const g=gps();if(g){S.gold+=g;hdr()}},1000);
+hdr();nb();updSp();tm=setInterval(step,650/S.sp);setInterval(()=>{const g=gps();if(g){S.gold+=g;hdr()}},1000);
 </script>
 </body>
 </html>
